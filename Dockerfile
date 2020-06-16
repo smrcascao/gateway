@@ -1,3 +1,4 @@
+#You must set environment variable: TEAMSWEBHOOK
 FROM python:3.7
 LABEL maintainer="smrcascao@gmail.com"
 COPY . /app
