@@ -19,7 +19,7 @@ def save_dev():
 
     # Filter information
     info['Receiver'] = data['receiver']
-    if 'message' in data['commonAnnotations']:
+    if 'commonAnnotations' in data and 'message' in data['commonAnnotations']:
         info['commonAnnotations']=data['commonAnnotations']['message']
     else:
         info['commonAnnotations'] =None
@@ -30,10 +30,12 @@ def save_dev():
         labels=alerts['labels']
         labels['status']=alerts['status']
 
-        if 'annotations' in alerts or 'message' in alerts['annotations']:
+        if 'annotations' in alerts and 'message' in alerts['annotations']:
             labels['annotations'] = alerts['annotations']['message']
-
-
+        if 'annotations' in alerts and 'description' in alerts['annotations']:
+            labels['annotations-description'] = alerts['annotations']['description']
+        if 'annotations' in alerts and 'summary' in alerts['annotations']:
+            labels['annotations-summary'] = alerts['annotations']['summary']
         info['alerts'].append(labels)
 
 
