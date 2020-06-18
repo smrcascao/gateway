@@ -14,6 +14,7 @@ app = Flask(__name__)
 def save_dev():
     ENVIRONMENTNAME=str(os.environ['ENVIRONMENTNAME'])
     data = request.get_json()
+    print("Body Request: "+str(data))
     info = {}
 
     # Filter information
@@ -24,11 +25,18 @@ def save_dev():
         info['alerts'].append(alerts['labels'])
 
     teamsMessage=createMessageToTeams(info,ENVIRONMENTNAME)
-    sendNotificationToTeams(teamsMessage)
+    teamsStatus=sendNotificationToTeams(teamsMessage)
+    info['TeamsStatus'] = []
+    info['TeamsStatus'].append(str(teamsStatus.text))
+    info['TeamsStatus'].append(str(teamsStatus))
 
     smsMessage=createNotificationViaSMS(info)
-    print("\nSMS message: \n"+str(smsMessage)+"\nEnd SMS\n")
-    sendSMSMessage(smsMessage,ENVIRONMENTNAME)
+    smsStatus=sendSMSMessage(smsMessage,ENVIRONMENTNAME)
+    info['smsStatus'] = []
+    info['smsStatus'].append(str(smsStatus.text))
+    info['smsStatus'].append(str(smsStatus))
+    print(info)
+
 
 
     return jsonify(info), 201
@@ -41,7 +49,7 @@ def sendSMSMessage(smsMessage,sender_id):
     print("<numbers>:"+str(numbers))
     URLSMSGateway = str(os.environ['URLSMSGATEWAY'])
 
-    payload = "{\n\"receivers\":"+numbers+",\n\"message\": \""+str(smsMessage)+"\",\n\"sender_id\":\""+sender_id+"\"\n}"
+    payload = "{\n\"receivers\":"+numbers+",\n\"message\": \""+str(smsMessage)+"\",\n\"sender_id\":\""+sender_id+" Environment\"\n}"
 
     print("payload " +payload)
     headers = {
@@ -50,7 +58,8 @@ def sendSMSMessage(smsMessage,sender_id):
 
     response = requests.request("POST", URLSMSGateway, headers=headers, data=payload)
 
-    print(response.text.encode('utf8'))
+    print("Sending sms response: "+str(response.text))
+    return response
 
 
 def createNotificationViaSMS(message):
@@ -63,7 +72,7 @@ def createNotificationViaSMS(message):
         sms = sms + '\tAlert ' + str(i) + '\n'
         sms= str(sms) + 'Alertname: ' + str(alert['alertname'])+ '\n'
         sms = str(sms) + 'Severity: ' + str(alert['severity']) + '\n'
-
+    print("SMS Message to send: "+str(sms)+"\n\n")
     return sms
 
 def sendNotificationToTeams(message):
@@ -75,6 +84,7 @@ def sendNotificationToTeams(message):
     response = requests.request("POST", teamsWebhook, headers=headers, data=data)
     print("Status Response: "+str(response))
     print("Content: "+str(response.text))
+    return response
 
 def createMessageToTeams(message,ENVIRONMENTNAME):
     list = []
@@ -98,7 +108,7 @@ def createMessageToTeams(message,ENVIRONMENTNAME):
     data.update({"themeColor": "d70000"}) # red alert
 
     data["sections"] = []
-    data["sections"].append(({"activityTitle": "Stratus Team "}))
+    data["sections"].append(({"activityTitle": "Team Stratus "}))
     data["sections"].append(({"activitySubtitle": "Environment: "+str(ENVIRONMENTNAME)}))
     data["sections"].append(({"activityImage": "https://pngriver.com/wp-content/uploads/2018/04/Download-Alert-PNG.png"}))
     data["sections"].append(({"activitySubtitle": message['commonAnnotations']}))
