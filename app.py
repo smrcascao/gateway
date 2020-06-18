@@ -19,10 +19,24 @@ def save_dev():
 
     # Filter information
     info['Receiver'] = data['receiver']
-    info['commonAnnotations']=data['commonAnnotations']['message']
+    if 'message' in data['commonAnnotations']:
+        info['commonAnnotations']=data['commonAnnotations']['message']
+    else:
+        info['commonAnnotations'] =None
+
     info['alerts'] = []
+   # info['alerts'].append(data['status'])
     for alerts in data['alerts']:
-        info['alerts'].append(alerts['labels'])
+        labels=alerts['labels']
+        labels['status']=alerts['status']
+
+        if 'annotations' in alerts or 'message' in alerts['annotations']:
+            labels['annotations'] = alerts['annotations']['message']
+
+
+        info['alerts'].append(labels)
+
+
 
     teamsMessage=createMessageToTeams(info,ENVIRONMENTNAME)
     teamsStatus=sendNotificationToTeams(teamsMessage)
