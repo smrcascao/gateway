@@ -17,28 +17,32 @@ def save_dev():
     print("Body Request: "+str(data))
     info = {}
 
-    # Filter information
-    info['Receiver'] = data['receiver']
-    if 'commonAnnotations' in data and 'message' in data['commonAnnotations']:
-        info['commonAnnotations']=data['commonAnnotations']['message']
-    else:
-        info['commonAnnotations'] =None
+    try:
 
-    info['alerts'] = []
-   # info['alerts'].append(data['status'])
-    for alerts in data['alerts']:
-        labels=alerts['labels']
-        labels['status']=alerts['status']
+        # Filter information
+        info['Receiver'] = data['receiver']
+        if 'commonAnnotations' in data and 'message' in data['commonAnnotations']:
+            info['commonAnnotations']=data['commonAnnotations']['message']
+        else:
+            info['commonAnnotations'] =None
 
-        if 'annotations' in alerts and 'message' in alerts['annotations']:
-            labels['annotations'] = alerts['annotations']['message']
-        if 'annotations' in alerts and 'description' in alerts['annotations']:
-            labels['annotations-description'] = alerts['annotations']['description']
-        if 'annotations' in alerts and 'summary' in alerts['annotations']:
-            labels['annotations-summary'] = alerts['annotations']['summary']
-        info['alerts'].append(labels)
+        info['alerts'] = []
+       # info['alerts'].append(data['status'])
+        for alerts in data['alerts']:
+            labels=alerts['labels']
+            labels['status']=alerts['status']
 
+            if 'annotations' in alerts and 'message' in alerts['annotations']:
+                labels['annotations'] = alerts['annotations']['message']
+            if 'annotations' in alerts and 'description' in alerts['annotations']:
+                labels['annotations-description'] = alerts['annotations']['description']
+            if 'annotations' in alerts and 'summary' in alerts['annotations']:
+                labels['annotations-summary'] = alerts['annotations']['summary']
+            info['alerts'].append(labels)
 
+    except Exception as e:
+        print("Exeption: "+str(e))
+        return jsonify({"ErrorCode:":"400","Message": "Bad Request","yourBodyRequest": str(data)}), 400
 
     teamsMessage=createMessageToTeams(info,ENVIRONMENTNAME)
     teamsStatus=sendNotificationToTeams(teamsMessage)
